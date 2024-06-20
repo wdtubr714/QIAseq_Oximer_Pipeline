@@ -1,4 +1,4 @@
-# QIAseq
+# QIAseq_Oximer_Pipeline
 
 #!/usr/bin/bash
 
