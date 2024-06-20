@@ -2,12 +2,12 @@
 
 #!/usr/bin/bash
 
-### Install Anaconda3/2024.02-1 and python3/3.9.6
+### Install necessary packages
 module load Anaconda3/2024.02-1
 module load python3/3.9.6
 module load java/22.0.1
 
-### Confirm Anaconda3/2024.02-1 is up-to-date
+### Confirm Anaconda3 is up-to-date
 conda update --update-all -y
 
 ### Set up conda channels
