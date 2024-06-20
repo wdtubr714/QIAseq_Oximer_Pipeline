@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Directory to store the genome
 mkdir -p "$BASE_DIR/hg38"
