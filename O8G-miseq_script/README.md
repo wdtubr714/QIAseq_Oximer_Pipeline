@@ -22,3 +22,6 @@
 2) miRNA_count.txt	(format: "miR_name" | "pos:mut" | "read_count" | "total_miR_count (PM+1MM+2MM)")
 +
 3) bowtie_unmapped.fastq (optional, if option "-un" is used)
+
+# Citation
+Hahm, J.Y., Park, J., Jang, ES. et al. 8-Oxoguanine: from oxidative damage to epigenetic and epitranscriptional modification. Exp Mol Med 54, 1626–1642 (2022). https://doi.org/10.1038/s12276-022-00822-z
