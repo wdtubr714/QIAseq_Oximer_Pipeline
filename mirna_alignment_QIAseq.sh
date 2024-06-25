@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
 # Set parameters
-BASE_DIR="/data4/msc19104442/liam_alignment"
+BASE_DIR="/path/to/base_dir"
 SAMPLES_FILE="$BASE_DIR/samples.txt"
 HAIRPIN_FILE="$BASE_DIR/hairpin_miRBase.fa"
 SPECIES="Mouse"
 MIN_LENGTH=15
 MAX_LENGTH=55
-NUM_CORES=2  # Number of cores to use for parallel processing
 
 # Process hairpin file
 echo "Processing hairpin file..."
@@ -46,13 +45,10 @@ process_sample() {
     local MIRDEEP2=$BASE_DIR/mirdeep2
     local MULTIQC=$BASE_DIR/multiqc
     local BBDUK="/home/msc19104442/.conda/envs/mirna_env/bin/bbduk.sh"
-    local DEDUPE="/home/msc19104442/.conda/envs/mirna_env/bin/dedupe.sh"
     local ADAPTERS_FILE="/home/msc19104442/.conda/envs/mirna_env/opt/bbmap-39.06-1/resources/adapters.fa"
     local CONTAMINANTS_FILE="/home/msc19104442/.conda/envs/mirna_env/opt/bbmap-39.06-1/resources/sequencing_artifacts.fa"
     local BBDUK_TRIMMED_FILE="$TRIMMED/${SAMPLE_NAME}_bbduk_trimmed.fastq.gz"
     local UMI_EXTRACTED_FILE="$TRIMMED/${SAMPLE_NAME}_umi_extracted.fastq.gz"
-    local LENGTH_FILTERED_FILE="$TRIMMED/${SAMPLE_NAME}_length_filtered.fastq.gz"
-    local DEDUPED_FILE="$TRIMMED/${SAMPLE_NAME}_deduped.fastq.gz"
     local COLLAPSED_DIR="$SAMPLE_DIR/collapsed"
     local COLLAPSED_FILE="$COLLAPSED_DIR/${SAMPLE_NAME}_deduped_trimmed.fastq"
 
@@ -64,9 +60,10 @@ process_sample() {
     # Create necessary directories
     mkdir -p "$SAMPLE_DIR" "$COLLAPSED_DIR" "$TRIMMED" "$FASTQC"
 
-    # Use umi_tools to extract UMIs
+    # Step 1: Use umi_tools to extract UMIs
     umi_tools extract --extract-method=regex \
                       --bc-pattern="(?P<smallRNA>[ATCG]{15,55})(?P<common>AACTGTAGGCACCATCAAT)(?P<umi_1>[ATCG]{12})(?P<junk>.*)" \
+                      --log="$TRIMMED/${SAMPLE_NAME}_umi_tools.log" \
                       -I "$SAMPLE" -S "$UMI_EXTRACTED_FILE"
 
     if [ $? -ne 0 ]; then
@@ -76,7 +73,7 @@ process_sample() {
 
     # Step 2: Use BBduk to detect and remove adapters and contaminants
     if [ ! -f "$BBDUK_TRIMMED_FILE" ]; then
-        $BBDUK in="$UMI_EXTRACTED_FILE" out="$BBDUK_TRIMMED_FILE" ref="$ADAPTERS_FILE,$CONTAMINANTS_FILE" literal=AACTGTAGGCACCATCAAT ktrim=r k=19 mink=11 hdist=1 tpe tbo qtrim=rl trimq=15 minlength=10 maxlength=100 forbidn=t
+        $BBDUK in="$UMI_EXTRACTED_FILE" out="$BBDUK_TRIMMED_FILE" ref="$ADAPTERS_FILE,$CONTAMINANTS_FILE" literal=AACTGTAGGCACCATCAAT ktrim=r k=19 mink=9 hdist=1 tpe tbo qtrim=rl trimq=25 maxlength=100 forbidn=t 2> "$TRIMMED/${SAMPLE_NAME}_bbduk.log"
         if [ $? -ne 0 ]; then
             echo "BBduk failed for sample: $SAMPLE_NAME"
             exit 1
@@ -84,20 +81,13 @@ process_sample() {
     fi
 
     # Step 3: Filter reads by length using cutadapt
-    cutadapt -m 15 -M 55 -o "$LENGTH_FILTERED_FILE" "$BBDUK_TRIMMED_FILE"
+    cutadapt -m 15 -M 55 -o "$DEDUPED_FILE" "$BBDUK_TRIMMED_FILE" 2> "$TRIMMED/${SAMPLE_NAME}_cutadapt.log"
     if [ $? -ne 0 ]; then
         echo "Length filtering failed for sample: $SAMPLE_NAME"
         exit 1
     fi
 
-    # Step 4: Deduplicate reads using BBMap's dedupe.sh
-    $DEDUPE in="$LENGTH_FILTERED_FILE" out="$DEDUPED_FILE" ac=f
-    if [ $? -ne 0 ]; then
-        echo "Deduplication failed for sample: $SAMPLE_NAME"
-        exit 1
-    fi
-
-    # Step 5: Run FastQC on the final deduplicated file
+    # Step 4: Run FastQC on the final deduplicated file
     fastqc -o "$FASTQC" "$DEDUPED_FILE"
     if [ $? -ne 0 ]; then
         echo "FastQC failed for sample: $SAMPLE_NAME"
@@ -106,7 +96,7 @@ process_sample() {
 
     # Collapse sequences
     if [ ! -f "$COLLAPSED_FILE" ]; then
-        seqcluster collapse -f "$DEDUPED_FILE" -m 1 --min_size 15 -o "$COLLAPSED_DIR"
+        seqcluster collapse -f "$DEDUPED_FILE" -m 1 --min_size 15 -o "$COLLAPSED_DIR" > "$TRIMMED/${SAMPLE_NAME}_seqcluster.log" 2>&1
         if [ $? -ne 0 ]; then
             echo "Seqcluster collapse failed for sample: $SAMPLE"
             exit 1
