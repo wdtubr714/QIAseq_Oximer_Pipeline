@@ -1,47 +1,24 @@
-# QIAseq_Oximer_Pipeline
+# Dependency
+1) Anaconda3/2024.02-1
+# create environment and download other packages:
+1) python3/3.9.6 (with package: pandas)
+2) bowtie version 1.3.1
+4) samtools 1.20
 
-#!/usr/bin/bash
+# Note:
+1) All 5 scripts must be in same directory!
+   (scripts: Mapping_miRNA_with_bowtie.py, FastQcollapse.py, parse_bowtie_result.py, count_miRNA.py & extract_bowtie_unmapped_reads.py)
+2) "mature.fa" must be converted from RNA to DNA sequence!
+   (if it's downloaded from miRBase, it is in RNA sequence)
+3) Adjust quality threshold (default = 33) in Mapping_miRNA_with_bowtie.py to represent data proerly
 
-### Install necessary packages
-module load Anaconda3/2024.02-1
-module load python3/3.9.6
-module load java/22.0.1
+# Steps:
+1. "python unzip_to_process.py" (samples.txt file must be provided with paths to _deduped.fq.gz files)
+2. "python Converting_RNAtoDNA.py" (change paths in script, filtering option for species (ex. mmu-) and name of mature sequencing file)
+3. "python Mapping_miRNA_with_bowtie.py -i /path/to/files/*.fastq -r /path/to/reference/mature_miRNA_sequence_dna.fa -o path/to/output_dir"
 
-### Confirm Anaconda3 is up-to-date
-conda update --update-all -y
-
-### Set up conda channels
-conda config --add channels defaults
-conda config --add channels bioconda
-conda config --add channels conda-forge
-
-### Create conda environment
-conda env create mirna_env -y
-conda activate mirna_env
-
-### Install all supporting packages for Anaconda3 to run alignment pipeline
-conda install -c bioconda seqkit fastqc cutadapt bowtie samtools seqcluster mirtop multiqc wget bbmap umi_tools bwa -y
-
-### Install R and necessary R packages
-conda install -c conda-forge r-base r-essentials -y
-Rscript -e "install.packages('tidyverse', repos='http://cran.rstudio.com/')"
-Rscript -e "install.packages('data.table', repos='http://cran.rstudio.com/')"
-Rscript -e "install.packages('readr', repos='http://cran.rstudio.com/')"
-
-### Ensure GNU parallel is installed
-conda install -c conda-forge parallel -y 
-
-### ORDER OF RUNNING
-mirna_alignment_QIAseq.sh
-unmapped_to_hg38.sh
-seqbuster_mirtop_multiqc.sh
-
-#### Must provide a samples.txt document along with the collapse_mirtop.r file, 
-#### downloadable hairpin.fa, and mature.fa file from miRBase
-#### samples.txt file should indicate the file path of each sample (no headers)
-#### Run all ".sh" in "$BASE_DIR"
-
-### Versions used:
-#### conda 24.1.2, seqkit 2.8.2, FastQC v0.12.1, Cutadapt 4.8, bowtie version 1.3.1, samtools 1.20, seqcluster 1.2.9, mirtop 0.4.25, multiqc version 1.22.2, GNU Wget 1.21.4, umi_tools 1.1.5, mirdeep2 2.0.1.3, bwa 0.7.18, bbmap 39.06
-#### Rscript (R) version 4.3.3 (2024-02-29)
-#### GNU Parallel 20240522 ('Tbilisi') v1
+# FINAL OUTPUT: 
+1) Mapping_summary.txt	(format: "file_name" | "total_read" | "PM_read" | "PM%" | "1MM_read" | "1MM%" | "2MM_read" | "2MM%")
+2) miRNA_count.txt	(format: "miR_name" | "pos:mut" | "read_count" | "total_miR_count (PM+1MM+2MM)")
++
+3) bowtie_unmapped.fastq (optional, if option "-un" is used)
