@@ -13,9 +13,10 @@
 3) Adjust quality threshold (default = 33) in Mapping_miRNA_with_bowtie.py to represent data proerly
 
 # Steps:
-1. "python unzip_to_process.py" (samples.txt file must be provided with paths to _deduped.fq.gz files)
-2. "python Converting_RNAtoDNA.py" (change paths in script, filtering option for species (ex. mmu-) and name of mature sequencing file)
-3. "python Mapping_miRNA_with_bowtie.py -i /path/to/files/*.fastq -r /path/to/reference/mature_miRNA_sequence_dna.fa -o path/to/output_dir"
+1. "bash pre-processing_QIAseq_mirna.sh"
+2. "python unzip_to_process.py" (samples.txt file must be provided with paths to _deduped.fq.gz files)
+3. "python Converting_RNAtoDNA.py" (change paths in script, filtering option for species (ex. mmu-) and name of mature sequencing file)
+4. "python Mapping_miRNA_with_bowtie.py -i /path/to/files/*.fastq -r /path/to/reference/mature_miRNA_sequence_dna.fa -o path/to/output_dir"
 
 # FINAL OUTPUT: 
 1) Mapping_summary.txt	(format: "file_name" | "total_read" | "PM_read" | "PM%" | "1MM_read" | "1MM%" | "2MM_read" | "2MM%")
