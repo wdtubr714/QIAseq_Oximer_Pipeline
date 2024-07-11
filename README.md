@@ -32,16 +32,13 @@ Rscript -e "install.packages('readr', repos='http://cran.rstudio.com/')"
 conda install -c conda-forge parallel -y 
 
 ### ORDER OF RUNNING
-mirna_alignment_QIAseq.sh
-unmapped_to_hg38.sh
-seqbuster_mirtop_multiqc.sh
+LOOK AT EACH BRANCH AND FOLLOW .MD FILES ASSOCIATED WITH THEM
 
-#### Must provide a samples.txt document along with the collapse_mirtop.r file, 
+#### Must provide a samples.txt document, 
 #### downloadable hairpin.fa, and mature.fa file from miRBase
 #### samples.txt file should indicate the file path of each sample (no headers)
-#### Run all ".sh" in "$BASE_DIR"
 
 ### Versions used:
 #### conda 24.1.2, seqkit 2.8.2, FastQC v0.12.1, Cutadapt 4.8, bowtie version 1.3.1, samtools 1.20, seqcluster 1.2.9, mirtop 0.4.25, multiqc version 1.22.2, GNU Wget 1.21.4, umi_tools 1.1.5, mirdeep2 2.0.1.3, bwa 0.7.18, bbmap 39.06
-#### Rscript (R) version 4.3.3 (2024-02-29)
+#### Rscript (R) version 4.3.3 (2024-02-29) with associated packages
 #### GNU Parallel 20240522 ('Tbilisi') v1
