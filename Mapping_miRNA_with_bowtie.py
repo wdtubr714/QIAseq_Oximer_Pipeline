@@ -2,7 +2,7 @@
 
 # ./Mapping_miRNA_with_bowtie.py -i Input_folder/ -r miRNA_sequence.fa -o Output_folder/
 
-# bowtie parameter: --norc -l 7 -n 2 -a -f
+# bowtie parameter: --norc -l 7 -n 2 -a -q
 # All scripts must be present in same directory!
 # Scripts used: FastQcollapse.py, parse_bowtie_result.py, count_miRNA.py, extract_bowtie_unmapped_reads.py
 
