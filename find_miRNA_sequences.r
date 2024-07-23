@@ -5,7 +5,7 @@ library(stringr)
 library(tidyr)
 
 # Directory containing the files
-directory_path <- "/data4/msc19104442/O8G-miseq"
+directory_path <- "/path/to/dir"
 
 # List all .bowtie.mapped.txt files
 file_list <- list.files(path = directory_path, pattern = "*.bowtie_mapped.txt", full.names = TRUE)
