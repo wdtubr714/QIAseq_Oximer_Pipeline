@@ -154,6 +154,10 @@ combined_miRNA_list <- combined_miRNA_list %>%
   select(miRNA, pos.mut, pos.mut_0_index, Sequence) %>%
   distinct()
 
+# Convert miRNA names from mir back to miR for consistency
+combined_miRNA_list <- combined_miRNA_list %>%
+  mutate(miRNA = str_replace_all(tolower(miRNA), "mir-", "miR-"))
+
 # Extract the seed sequence (1 to 8) from the Sequence
 combined_miRNA_list <- combined_miRNA_list %>%
   mutate(seed_sequence_mutated = substr(Sequence, 1, 8))
