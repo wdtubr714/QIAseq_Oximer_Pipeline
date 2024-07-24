@@ -135,7 +135,7 @@ missing_entries <- miRNA_list %>%
 cat("Missing entries:\n")
 print(missing_entries)
 
-# Filter the deduplicated final data to only include the 125 miRNAs from the miRNA_list
+# Filter the deduplicated final data to only include the X miRNAs from the miRNA_list
 final_filtered_data <- deduplicated_final_data %>%
   filter(miRNA_id %in% miRNA_list$miRNA)
 
@@ -145,7 +145,7 @@ write_csv(final_filtered_data, file.path(directory_path, "final_filtered_miRNA_d
 # Save the missing entries to a file if needed
 write_csv(missing_entries, file.path(directory_path, "missing_miRNA_entries.csv"))
 
-# Combine the final filtered data with miRNA_list to ensure only 125 miRNAs are included
+# Combine the final filtered data with miRNA_list to ensure only X miRNAs are included
 combined_miRNA_list <- miRNA_list %>%
   inner_join(final_filtered_data %>% select(miRNA_id, Sequence), by = c("miRNA" = "miRNA_id"), relationship = "many-to-many")
 
