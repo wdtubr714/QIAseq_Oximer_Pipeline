@@ -3,7 +3,7 @@ library(Biostrings)
 library(dplyr)
 
 # Set base directory
-base_dir <- "/path/to/dir"
+base_dir <- "/data4/msc19104442/target_ID"
 
 # Load data
 mirna_DE <- read.csv(file.path(base_dir, "mirna_DE.csv"))
@@ -16,13 +16,8 @@ print(colnames(mirna_targets))
 cat("Column names in mirna_DE:\n")
 print(colnames(mirna_DE))
 
-# Extract miRNA ID from miRNA_MIMAT_ID_Species for merging
-mirna_DE <- mirna_DE %>%
-  mutate(miRNA_ID = sapply(strsplit(as.character(miRNA_MIMAT_ID_Species), " "), `[`, 1))
-print(head(mirna_DE))
-
 # Merge datasets using a left join to retain all target interactions
-merged_df <- merge(mirna_targets, mirna_DE, by.x = "mature_mirna_id", by.y = "miRNA_ID", all.x = TRUE)
+merged_df <- merge(mirna_targets, mirna_DE, by.x = "mature_mirna_id", by.y = "miRNA", all.x = TRUE)
 print(head(merged_df))
 
 # Filter out rows with NA values or 'Sequence unavailable' in the X3utr column
@@ -129,7 +124,7 @@ cat("miRNA determination completed.\n")
 # Select final data frame including 3' UTR and 5' seed sequences and probabilities from Biostrings
 cat("Selecting final data frame...\n")
 final_df <- merged_df %>%
-  select(miRNA_MIMAT_ID_Species, database, target_ensembl, target_symbol, X3utr, adjusted_strand_with_mutation,
+  select(mature_mirna_id, database, target_ensembl, target_symbol, X3utr, Sequence,
          seed_sequence_normal, seed_sequence_mutated, pos.mut,
          binding_prob_normal_8mer, binding_prob_normal_7mer_m8, binding_prob_normal_7mer_A1, binding_prob_normal_6mer,
          binding_prob_mutated_8mer, binding_prob_mutated_7mer_m8, binding_prob_mutated_7mer_A1, binding_prob_mutated_6mer,
