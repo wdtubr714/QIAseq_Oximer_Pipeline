@@ -2,7 +2,7 @@
 library(dplyr)
 
 # Set base directory and define input and output file paths
-base_dir <- "/data4/msc19104442/target_ID"
+base_dir <- "/path/to/dir"
 input_file <- file.path(base_dir, "mirna_binding_probabilities_biostrings_predicted.csv")
 mirna_de_file <- file.path(base_dir, "mirna_DE.csv")
 output_file_normal <- file.path(base_dir, "top_five_binding_prob_normal_predicted.csv")
