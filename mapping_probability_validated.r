@@ -60,82 +60,97 @@ calculate_binding_score <- function(seed_seq, utr_seq, seed_type) {
 # Define seed types
 seed_types <- c("6mer", "7mer_m8", "7mer_A1", "8mer")
 
-# Calculate binding scores for each seed type
-for (type in seed_types) {
-  merged_df <- merged_df %>%
-    rowwise() %>%
-    mutate(
-      !!paste0("binding_score_normal_", gsub("-", "_", type)) := calculate_binding_score(seed_sequence_normal, X3utr, type),
-      !!paste0("binding_score_mutated_", gsub("-", "_", type)) := calculate_binding_score(seed_sequence_mutated, X3utr, type)
-    ) %>%
+# Calculate binding scores and probabilities for each seed type for each row
+calculate_row_probabilities <- function(row, seed_types) {
+  utr_length <- nchar(row$X3utr)
+  
+  normal_scores <- sapply(seed_types, function(type) {
+    score <- calculate_binding_score(row$seed_sequence_normal, row$X3utr, type)
+    return(score / utr_length)  # Normalize by UTR length
+  })
+  
+  mutated_scores <- sapply(seed_types, function(type) {
+    score <- calculate_binding_score(row$seed_sequence_mutated, row$X3utr, type)
+    return(score / utr_length)  # Normalize by UTR length
+  })
+  
+  # Sum normalized scores to get collective binding scores
+  collective_normal_score <- sum(normal_scores)
+  collective_mutated_score <- sum(mutated_scores)
+  
+  # Calculate probabilities
+  probabilities <- sapply(1:length(seed_types), function(i) {
+    normal_score <- normal_scores[i]
+    mutated_score <- mutated_scores[i]
+    if (normal_score == 0) {
+      return(0)
+    } else {
+      return(1 - (mutated_score / normal_score))
+    }
+  })
+  
+  names(probabilities) <- paste0("mutation_prob_", seed_types)
+  
+  # Calculate binding counts for each seed type without normalization
+  normal_binding_counts <- sapply(seed_types, function(type) {
+    calculate_binding_score(row$seed_sequence_normal, row$X3utr, type)
+  })
+  
+  mutated_binding_counts <- sapply(seed_types, function(type) {
+    calculate_binding_score(row$seed_sequence_mutated, row$X3utr, type)
+  })
+  
+  # Sum binding counts to get total counts
+  total_normal_binding_counts <- sum(normal_binding_counts)
+  total_mutated_binding_counts <- sum(mutated_binding_counts)
+  
+  binding_counts <- c(normal_binding_counts, mutated_binding_counts)
+  names(binding_counts) <- c(paste0("normal_binding_count_", seed_types), paste0("mutated_binding_count_", seed_types))
+  
+  return(c(probabilities, collective_normal_score = collective_normal_score, collective_mutated_score = collective_mutated_score,
+           total_normal_binding_counts = total_normal_binding_counts, total_mutated_binding_counts = total_mutated_binding_counts,
+           binding_counts))
+}
+
+# Apply the function to each row in the dataframe
+probabilities_list <- apply(merged_df, 1, calculate_row_probabilities, seed_types = seed_types)
+probabilities_df <- do.call(rbind, probabilities_list)
+merged_df <- cbind(merged_df, probabilities_df)
+
+# Function to extract top 3 target genes based on collective binding scores
+extract_top_targets <- function(df, score_col, top_n = 3) {
+  df %>%
+    group_by(mature_mirna_id, pos.mut) %>%
+    top_n(top_n, !!sym(score_col)) %>%
     ungroup()
 }
 
-# Function to normalize scores using Z-score within each miRNA group
-z_score_normalization_group <- function(df, score_col) {
-  df %>%
-    group_by(mature_mirna_id) %>%
-    mutate(
-      mean_score = mean(!!sym(score_col), na.rm = TRUE),
-      sd_score = sd(!!sym(score_col), na.rm = TRUE),
-      z_score = ifelse(sd_score == 0, 0, (!!sym(score_col) - mean_score) / sd_score)
-    ) %>%
-    ungroup() %>%
-    select(-mean_score, -sd_score)
-}
+# Extract top 3 targets for normal and mutated sequences
+top_targets_normal <- extract_top_targets(merged_df, "collective_normal_score")
+top_targets_mutated <- extract_top_targets(merged_df, "collective_mutated_score")
 
-# Normalize scores using Z-score for each seed type within miRNA groups
-for (type in seed_types) {
-  normal_col <- paste0("binding_score_normal_", gsub("-", "_", type))
-  mutated_col <- paste0("binding_score_mutated_", gsub("-", "_", type))
-  
-  merged_df <- z_score_normalization_group(merged_df, normal_col) %>%
-    rename(!!paste0("binding_prob_normal_", gsub("-", "_", type)) := z_score)
-  
-  merged_df <- z_score_normalization_group(merged_df, mutated_col) %>%
-    rename(!!paste0("binding_prob_mutated_", gsub("-", "_", type)) := z_score)
-}
-
-# Summarize binding scores into a single combined score
-merged_df <- merged_df %>%
-  rowwise() %>%
-  mutate(
-    combined_binding_prob_normal = sum(abs(c_across(starts_with("binding_prob_normal_"))), na.rm = TRUE),
-    combined_binding_prob_mutated = sum(abs(c_across(starts_with("binding_prob_mutated_"))), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-# Add columns that count all the counts up for normal and mutated binding scores
-merged_df <- merged_df %>%
-  rowwise() %>%
-  mutate(
-    total_binding_counts_normal = sum(c_across(starts_with("binding_score_normal_")), na.rm = TRUE),
-    total_binding_counts_mutated = sum(c_across(starts_with("binding_score_mutated_")), na.rm = TRUE)
-  ) %>%
-  ungroup()
+# Combine top targets into one dataframe
+top_targets_combined <- bind_rows(top_targets_normal, top_targets_mutated)
 
 # Print column names to verify the presence of all required columns
-cat("Column names in merged_df:\n")
-print(colnames(merged_df))
+cat("Column names in top_targets_combined:\n")
+print(colnames(top_targets_combined))
 
 cat("miRNA determination completed.\n")
 
 # Select final data frame including 3' UTR and 5' seed sequences and probabilities from Biostrings
 cat("Selecting final data frame...\n")
-final_df <- merged_df %>%
+final_df <- top_targets_combined %>%
   select(mature_mirna_id, database, target_ensembl, pubmed_id, target_symbol, X3utr, Sequence,
          seed_sequence_normal, seed_sequence_mutated, pos.mut, experiment,
-         binding_prob_normal_8mer, binding_prob_normal_7mer_m8, binding_prob_normal_7mer_A1, binding_prob_normal_6mer,
-         binding_prob_mutated_8mer, binding_prob_mutated_7mer_m8, binding_prob_mutated_7mer_A1, binding_prob_mutated_6mer,
-         combined_binding_prob_normal, combined_binding_prob_mutated,
-         total_binding_counts_normal, total_binding_counts_mutated,
-         binding_score_normal_6mer, binding_score_normal_7mer_m8, binding_score_normal_7mer_A1, binding_score_normal_8mer,
-         binding_score_mutated_6mer, binding_score_mutated_7mer_m8, binding_score_mutated_7mer_A1, binding_score_mutated_8mer)
+         starts_with("mutation_prob_"), collective_normal_score, collective_mutated_score,
+         total_normal_binding_counts, total_mutated_binding_counts,
+         starts_with("normal_binding_count_"), starts_with("mutated_binding_count_"))
 
 cat("Final data frame selected.\n")
 
 # Define output file path
-output_file <- file.path(base_dir, "mirna_binding_probabilities_biostrings_validated.csv")
+output_file <- file.path(base_dir, "mirna_binding_probabilities_biostrings_validated_top_targets.csv")
 
 # Write the final data frame to a CSV file in the base directory
 cat("Writing final data frame to CSV...\n")
