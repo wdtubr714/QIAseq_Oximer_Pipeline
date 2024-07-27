@@ -1,8 +1,9 @@
 library(Biostrings)
 library(dplyr)
+library(purrr)
 
 # Set base directory
-base_dir <- "/path/to/dir"
+base_dir <- "/data4/msc19104442/target_ID"
 
 # Load data
 mirna_DE <- read.csv(file.path(base_dir, "mirna_DE.csv"))
@@ -60,7 +61,7 @@ calculate_binding_score <- function(seed_seq, utr_seq, seed_type) {
 # Define seed types
 seed_types <- c("6mer", "7mer_m8", "7mer_A1", "8mer")
 
-# Calculate binding scores and probabilities for each seed type for each row
+# Function to calculate binding scores and probabilities for each seed type for each row
 calculate_row_probabilities <- function(row, seed_types) {
   utr_length <- nchar(row$X3utr)
   
@@ -112,9 +113,9 @@ calculate_row_probabilities <- function(row, seed_types) {
            binding_counts))
 }
 
-# Apply the function to each row in the dataframe
-probabilities_list <- apply(merged_df, 1, calculate_row_probabilities, seed_types = seed_types)
-probabilities_df <- do.call(rbind, probabilities_list)
+# Apply the function to each row in the dataframe using pmap
+probabilities_list <- pmap(merged_df, ~ calculate_row_probabilities(list(...), seed_types = seed_types))
+probabilities_df <- as.data.frame(do.call(rbind, probabilities_list))
 merged_df <- cbind(merged_df, probabilities_df)
 
 # Function to extract top 3 target genes based on collective binding scores

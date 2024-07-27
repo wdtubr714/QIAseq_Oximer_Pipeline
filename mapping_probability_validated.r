@@ -3,7 +3,7 @@ library(dplyr)
 library(purrr)
 
 # Set base directory
-base_dir <- "/path/to/dir"
+base_dir <- "/data4/msc19104442/target_ID"
 
 # Load data
 mirna_DE <- read.csv(file.path(base_dir, "mirna_DE.csv"))
@@ -61,7 +61,6 @@ calculate_binding_score <- function(seed_seq, utr_seq, seed_type) {
 # Define seed types
 seed_types <- c("6mer", "7mer_m8", "7mer_A1", "8mer")
 
-# Function to calculate binding scores and probabilities for each seed type for each row
 calculate_row_probabilities <- function(row, seed_types) {
   utr_length <- nchar(row$X3utr)
   
@@ -76,14 +75,14 @@ calculate_row_probabilities <- function(row, seed_types) {
   })
   
   # Sum normalized scores to get collective binding scores
-  collective_normal_score <- sum(normal_scores)
-  collective_mutated_score <- sum(mutated_scores)
+  collective_normal_score <- sum(normal_scores, na.rm = TRUE)
+  collective_mutated_score <- sum(mutated_scores, na.rm = TRUE)
   
   # Calculate probabilities
   probabilities <- sapply(1:length(seed_types), function(i) {
     normal_score <- normal_scores[i]
     mutated_score <- mutated_scores[i]
-    if (normal_score == 0) {
+    if (is.na(normal_score) || normal_score == 0) {
       return(0)
     } else {
       return(1 - (mutated_score / normal_score))
@@ -102,8 +101,8 @@ calculate_row_probabilities <- function(row, seed_types) {
   })
   
   # Sum binding counts to get total counts
-  total_normal_binding_counts <- sum(normal_binding_counts)
-  total_mutated_binding_counts <- sum(mutated_binding_counts)
+  total_normal_binding_counts <- sum(normal_binding_counts, na.rm = TRUE)
+  total_mutated_binding_counts <- sum(mutated_binding_counts, na.rm = TRUE)
   
   binding_counts <- c(normal_binding_counts, mutated_binding_counts)
   names(binding_counts) <- c(paste0("normal_binding_count_", seed_types), paste0("mutated_binding_count_", seed_types))
@@ -114,7 +113,7 @@ calculate_row_probabilities <- function(row, seed_types) {
 }
 
 # Apply the function to each row in the dataframe using pmap
-probabilities_list <- pmap(merged_df, calculate_row_probabilities, seed_types = seed_types)
+probabilities_list <- pmap(merged_df, ~ calculate_row_probabilities(list(...), seed_types = seed_types))
 probabilities_df <- as.data.frame(do.call(rbind, probabilities_list))
 merged_df <- cbind(merged_df, probabilities_df)
 
