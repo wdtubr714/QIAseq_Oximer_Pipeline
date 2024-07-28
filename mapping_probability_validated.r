@@ -61,55 +61,64 @@ calculate_binding_score <- function(seed_seq, utr_seq, seed_type) {
 # Define seed types
 seed_types <- c("6mer", "7mer_m8", "7mer_A1", "8mer")
 
-calculate_row_probabilities <- function(row, seed_types) {
-  utr_length <- nchar(row$X3utr)
+# Function to count possible binding sites in the UTR
+count_possible_binding_sites <- function(utr_seq, seed_type) {
+  # Define seed lengths
+  seed_lengths <- c("6mer" = 6, "7mer_m8" = 7, "7mer_A1" = 7, "8mer" = 8)
+  seed_length <- seed_lengths[seed_type]
   
+  # Count possible binding sites
+  possible_sites <- nchar(utr_seq) - seed_length + 1
+  return(max(possible_sites, 0))  # Ensure non-negative count
+}
+
+# Function to calculate binding scores and probabilities for each seed type for each row
+calculate_row_probabilities <- function(row, seed_types) {
   normal_scores <- sapply(seed_types, function(type) {
-    score <- calculate_binding_score(row$seed_sequence_normal, row$X3utr, type)
-    return(score / utr_length)  # Normalize by UTR length
+    calculate_binding_score(row$seed_sequence_normal, row$X3utr, type)
   })
   
   mutated_scores <- sapply(seed_types, function(type) {
-    score <- calculate_binding_score(row$seed_sequence_mutated, row$X3utr, type)
-    return(score / utr_length)  # Normalize by UTR length
+    calculate_binding_score(row$seed_sequence_mutated, row$X3utr, type)
   })
   
+  possible_sites <- sapply(seed_types, function(type) {
+    count_possible_binding_sites(row$X3utr, type)
+  })
+  
+  # Handle NA values in possible_sites
+  possible_sites[is.na(possible_sites)] <- 0
+  
+  # Normalize scores based on possible binding sites
+  normalized_normal_scores <- normal_scores / possible_sites
+  normalized_normal_scores[is.na(normalized_normal_scores)] <- 0  # Handle NA values
+  
+  normalized_mutated_scores <- mutated_scores / possible_sites
+  normalized_mutated_scores[is.na(normalized_mutated_scores)] <- 0  # Handle NA values
+  
   # Sum normalized scores to get collective binding scores
-  collective_normal_score <- sum(normal_scores, na.rm = TRUE)
-  collective_mutated_score <- sum(mutated_scores, na.rm = TRUE)
+  collective_normal_score <- sum(normalized_normal_scores, na.rm = TRUE)
+  collective_mutated_score <- sum(normalized_mutated_scores, na.rm = TRUE)
   
   # Calculate probabilities
   probabilities <- sapply(1:length(seed_types), function(i) {
-    normal_score <- normal_scores[i]
-    mutated_score <- mutated_scores[i]
-    if (is.na(normal_score) || normal_score == 0) {
+    normal_score <- normalized_normal_scores[i]
+    mutated_score <- normalized_mutated_scores[i]
+    if (normal_score == 0) {
       return(0)
     } else {
-      return(1 - (mutated_score / normal_score))
+      prob <- 1 - (mutated_score / normal_score)
+      return(max(0, min(1, prob)))  # Ensure probability is within [0, 1]
     }
   })
   
   names(probabilities) <- paste0("mutation_prob_", seed_types)
   
-  # Calculate binding counts for each seed type without normalization
-  normal_binding_counts <- sapply(seed_types, function(type) {
-    calculate_binding_score(row$seed_sequence_normal, row$X3utr, type)
-  })
-  
-  mutated_binding_counts <- sapply(seed_types, function(type) {
-    calculate_binding_score(row$seed_sequence_mutated, row$X3utr, type)
-  })
-  
-  # Sum binding counts to get total counts
-  total_normal_binding_counts <- sum(normal_binding_counts, na.rm = TRUE)
-  total_mutated_binding_counts <- sum(mutated_binding_counts, na.rm = TRUE)
-  
-  binding_counts <- c(normal_binding_counts, mutated_binding_counts)
+  binding_counts <- c(normal_scores, mutated_scores)
   names(binding_counts) <- c(paste0("normal_binding_count_", seed_types), paste0("mutated_binding_count_", seed_types))
   
   return(c(probabilities, collective_normal_score = collective_normal_score, collective_mutated_score = collective_mutated_score,
-           total_normal_binding_counts = total_normal_binding_counts, total_mutated_binding_counts = total_mutated_binding_counts,
-           binding_counts))
+           binding_counts, total_normal_binding_counts = sum(normal_scores, na.rm = TRUE), total_mutated_binding_counts = sum(mutated_scores, na.rm = TRUE)))
 }
 
 # Apply the function to each row in the dataframe using pmap
@@ -144,8 +153,8 @@ final_df <- top_targets_combined %>%
   select(mature_mirna_id, database, target_ensembl, pubmed_id, target_symbol, X3utr, Sequence,
          seed_sequence_normal, seed_sequence_mutated, pos.mut, experiment,
          starts_with("mutation_prob_"), collective_normal_score, collective_mutated_score,
-         total_normal_binding_counts, total_mutated_binding_counts,
-         starts_with("normal_binding_count_"), starts_with("mutated_binding_count_"))
+         starts_with("normal_binding_count_"), starts_with("mutated_binding_count_"),
+         total_normal_binding_counts, total_mutated_binding_counts)
 
 cat("Final data frame selected.\n")
 
