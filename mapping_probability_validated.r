@@ -53,7 +53,7 @@ calculate_binding_score <- function(seed_seq, utr_seq, seed_type) {
   }
   
   # Count matches of seed sequence reverse complement in the 3' UTR sequence
-  binding_counts <- vcountPattern(seed_seq_rc, utr_seq, max.mismatch=0, min.mismatch=0, with.indels=FALSE, fixed=TRUE)
+  binding_counts <- countPattern(seed_seq_rc, utr_seq, max.mismatch=0, min.mismatch=0, with.indels=FALSE, fixed=TRUE)
   
   return(binding_counts)
 }
