@@ -54,7 +54,7 @@ calculate_binding_score <- function(seed_seq, utr_seq, seed_type) {
   }
   
   # Count matches of seed sequence reverse complement in the 3' UTR sequence
-  binding_counts <- vcountPattern(seed_seq_rc, utr_seq, max.mismatch=0, min.mismatch=0, with.indels=FALSE, fixed=TRUE)
+  binding_counts <- countPattern(seed_seq_rc, utr_seq, max.mismatch=0, min.mismatch=0, with.indels=FALSE, fixed=TRUE)
   
   return(binding_counts)
 }
@@ -118,8 +118,12 @@ calculate_row_probabilities <- function(row, seed_types) {
   binding_counts <- c(normal_scores, mutated_scores)
   names(binding_counts) <- c(paste0("normal_binding_count_", seed_types), paste0("mutated_binding_count_", seed_types))
   
+  # Calculate the collective probability (average probability)
+  collective_probability <- mean(probabilities, na.rm = TRUE)
+  
   return(c(probabilities, collective_normal_score = collective_normal_score, collective_mutated_score = collective_mutated_score,
-           binding_counts, total_normal_binding_counts = sum(normal_scores, na.rm = TRUE), total_mutated_binding_counts = sum(mutated_scores, na.rm = TRUE)))
+           collective_probability = collective_probability, binding_counts,
+           total_normal_binding_counts = sum(normal_scores, na.rm = TRUE), total_mutated_binding_counts = sum(mutated_scores, na.rm = TRUE)))
 }
 
 # Apply the function to each row in the dataframe using pmap
@@ -127,7 +131,7 @@ probabilities_list <- pmap(merged_df, ~ calculate_row_probabilities(list(...), s
 probabilities_df <- as.data.frame(do.call(rbind, probabilities_list))
 merged_df <- cbind(merged_df, probabilities_df)
 
-# Function to extract top 3 target genes based on collective binding scores
+# Function to extract top 3 target genes based on collective probability
 extract_top_targets <- function(df, score_col, top_n = 3) {
   df %>%
     group_by(mature_mirna_id, pos.mut) %>%
@@ -136,15 +140,11 @@ extract_top_targets <- function(df, score_col, top_n = 3) {
 }
 
 # Extract top 3 targets for normal and mutated sequences
-top_targets_normal <- extract_top_targets(merged_df, "collective_normal_score")
-top_targets_mutated <- extract_top_targets(merged_df, "collective_mutated_score")
-
-# Combine top targets into one dataframe
-top_targets_combined <- bind_rows(top_targets_normal, top_targets_mutated)
+top_targets <- extract_top_targets(merged_df, "collective_probability")
 
 # Print column names to verify the presence of all required columns
-cat("Column names in top_targets_combined:\n")
-print(colnames(top_targets_combined))
+cat("Column names in top_targets:\n")
+print(colnames(top_targets))
 
 cat("miRNA determination completed.\n")
 
@@ -154,7 +154,7 @@ final_df <- top_targets_combined %>%
   select(mature_mirna_id, database, target_ensembl, target_symbol, X3utr, Sequence,
          seed_sequence_normal, seed_sequence_mutated, pos.mut,
          starts_with("mutation_prob_"), collective_normal_score, collective_mutated_score,
-         starts_with("normal_binding_count_"), starts_with("mutated_binding_count_"),
+         collective_probability, starts_with("normal_binding_count_"), starts_with("mutated_binding_count_"),
          total_normal_binding_counts, total_mutated_binding_counts)
 
 cat("Final data frame selected.\n")
