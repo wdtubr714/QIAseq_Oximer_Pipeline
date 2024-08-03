@@ -1,0 +1,14 @@
+,mature_mirna_id,pos.mut,database,target_ensembl,target_symbol,seed_sequence_normal,seed_sequence_mutated,binding_score_mutated_6mer,binding_score_mutated_7mer_m8,binding_score_mutated_7mer_A1,binding_score_mutated_8mer,total_binding_counts_mutated
+60,mmu-miR-7238-3p,"7:G>T,14:C>T",mirdb,ENSMUSG00000033306,Lpp,CTGTCCGT,CTGTCCTT,8,5,0,0,13
+63,mmu-miR-7238-3p,"7:G>T,14:C>T",mirdb,ENSMUSG00000037996,Slc24a2,CTGTCCGT,CTGTCCTT,7,2,0,0,9
+159,mmu-let-7c-5p,"6:G>T,22:A>T",diana_microt,ENSMUSG00000031442,Mcf2l,TGAGGGAG,TGAGGTAG,7,7,7,7,28
+165,mmu-miR-1a-3p,"6:G>T,20:C>T",targetscan,ENSMUSG00000048070,Pirt,TGGAAGGT,TGGAATGT,7,4,3,2,16
+180,mmu-miR-122-5p,6:G>T,diana_microt,ENSMUSG00000049871,Nlrc3,TGGAGGGT,TGGAGTGT,8,8,0,0,16
+182,mmu-miR-122-5p,6:G>T,diana_microt,ENSMUSG00000049871,Nlrc3,TGGAGGGT,TGGAGTGT,8,8,0,0,16
+184,mmu-miR-122-5p,6:G>T,mirdb,ENSMUSG00000061411,Nol4l,TGGAGGGT,TGGAGTGT,5,3,3,2,13
+187,mmu-miR-24-3p,5:G>T,mirdb,ENSMUSG00000031748,Gnao1,TGGCGCAG,TGGCTCAG,13,11,2,0,26
+215,mmu-miR-133a-3p,"1:C>T,2:G>T",mirdb,ENSMUSG00000038766,Gabpb2,CGTGGTCC,TTTGGTCC,5,4,4,3,16
+216,mmu-miR-133a-3p,"1:C>T,2:G>T",mirdb,ENSMUSG00000038766,Gabpb2,CGTGGTCC,TTTGGTCC,5,4,4,3,16
+217,mmu-miR-133a-3p,"1:C>T,2:G>T",diana_microt,ENSMUSG00000038766,Gabpb2,CGTGGTCC,TTTGGTCC,5,4,4,3,16
+218,mmu-miR-133a-3p,"1:C>T,2:G>T",mirdb,ENSMUSG00000038766,Gabpb2,CGTGGTCC,TTTGGTCC,5,4,4,3,16
+219,mmu-miR-133a-3p,"1:C>T,2:G>T",mirdb,ENSMUSG00000038766,Gabpb2,CGTGGTCC,TTTGGTCC,5,4,4,3,16
