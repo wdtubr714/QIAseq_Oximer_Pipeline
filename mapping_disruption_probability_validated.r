@@ -4,7 +4,7 @@ library(dplyr)
 library(purrr)
 
 # Set base directory
-base_dir <- "/data4/msc19104442/target_ID"
+base_dir <- "/path/to/dir"
 
 # Load data
 mirna_DE <- read.csv(file.path(base_dir, "mirna_DE.csv"))
