@@ -17,9 +17,14 @@
 2. "python unzip_to_process.py" (samples.txt file must be provided with paths to _deduped.fq.gz files)
 3. "python Converting_RNAtoDNA.py" (change paths in script, filtering option for species (ex. mmu-) and name of mature sequencing file)
 4. "python Mapping_miRNA_with_bowtie.py -i /path/to/files/*.fastq -r /path/to/reference/mature_miRNA_sequence_dna.fa -o path/to/output_dir"
+5. All other scripts should be used by direction of the Mapping oxoG in Oxidized miRNA paper
 
 # FINAL OUTPUT: 
 1) Mapping_summary.txt	(format: "file_name" | "total_read" | "PM_read" | "PM%" | "1MM_read" | "1MM%" | "2MM_read" | "2MM%")
 2) miRNA_count.txt	(format: "miR_name" | "pos:mut" | "read_count" | "total_miR_count (PM+1MM+2MM)")
 +
 3) bowtie_unmapped.fastq (optional, if option "-un" is used)
+
+
+Reference: Hahm, J.Y., Park, J., Jang, ES. et al. 8-Oxoguanine: from oxidative damage to epigenetic and epitranscriptional modification. Exp Mol Med 54, 1626–1642 (2022). https://doi.org/10.1038/s12276-022-00822-z
+
