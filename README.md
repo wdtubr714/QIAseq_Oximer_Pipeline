@@ -10,7 +10,7 @@
    (scripts: Mapping_miRNA_with_bowtie.py, FastQcollapse.py, parse_bowtie_result.py, count_miRNA.py & extract_bowtie_unmapped_reads.py)
 2) "mature.fa" must be converted from RNA to DNA sequence!
    (if it's downloaded from miRBase, it is in RNA sequence)
-3) Adjust quality threshold (default = 38) in Mapping_miRNA_with_bowtie.py to represent data proerly
+3) Adjust quality threshold (default = 38) in Mapping_miRNA_with_bowtie.py to represent data properly
 
 # Steps:
 1. "bash pre-processing_QIAseq_mirna.sh"
