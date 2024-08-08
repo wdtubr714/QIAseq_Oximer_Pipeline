@@ -21,7 +21,7 @@
 4. "python Mapping_miRNA_with_bowtie.py -i /path/to/files/*.fastq -r /path/to/reference/mature_miRNA_sequence_dna.fa -o path/to/output_dir"
 5. All other scripts should be used by direction of the Mapping oxoG in Oxidized miRNA paper
 
-# FINAL OUTPUT: 
+# FINAL OUTPUT for O8G-miseq: 
 1) Mapping_summary.txt	(format: "file_name" | "total_read" | "PM_read" | "PM%" | "1MM_read" | "1MM%" | "2MM_read" | "2MM%")
 2) miRNA_count.txt	(format: "miR_name" | "pos:mut" | "read_count" | "total_miR_count (PM+1MM+2MM)")
 +
