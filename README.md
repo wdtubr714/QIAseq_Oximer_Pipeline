@@ -1,6 +1,8 @@
 # QIAseq_Oximer_Pipeline
 
-#!/usr/bin/bash
+## Branches
+- O8G-miseq
+- QIAseq_oximer_pipeline
 
 ### Install necessary packages
 module load Anaconda3/2024.02-1
@@ -29,11 +31,7 @@ Rscript -e "install.packages('data.table', repos='http://cran.rstudio.com/')"
 Rscript -e "install.packages('readr', repos='http://cran.rstudio.com/')"
 
 ### Ensure GNU parallel is installed
-conda install -c conda-forge parallel -y 
-
-### BRANCHES
-O8G-miseq
-QIAseq
+conda install -c conda-forge parallel -y
 
 #### Must provide a samples.txt document, 
 #### downloadable hairpin.fa, and mature.fa file from miRBase
