@@ -31,8 +31,9 @@ Rscript -e "install.packages('readr', repos='http://cran.rstudio.com/')"
 ### Ensure GNU parallel is installed
 conda install -c conda-forge parallel -y 
 
-### ORDER OF RUNNING
-LOOK AT EACH BRANCH AND FOLLOW .MD FILES ASSOCIATED WITH THEM
+### BRANCHES
+O8G-miseq
+QIAseq
 
 #### Must provide a samples.txt document, 
 #### downloadable hairpin.fa, and mature.fa file from miRBase
